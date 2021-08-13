@@ -1,0 +1,39 @@
+# Use postgres/example user/password credentials
+version: '3.9'
+
+services:
+  db:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+  api:
+    restart: always
+    build: ./backend
+    command: python app.py
+    volumes: 
+      - ./backend/app.py:/app/backend/app.py
+    ports:
+      - "5000:5000"
+    depends_on: 
+      - db
+  web:
+    restart: always
+    build: ./frontend
+    volumes: 
+      - ./frontend/src:/app/frontend/src
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - api
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - HOST_URL=http://192.168.99.100:5000 
+volumes:
+  postgres_data:
